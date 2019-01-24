@@ -21,6 +21,11 @@ int CNFGenerator<KeyType>::getKeyId(LiteralType literal) {
 }
 
 template<typename KeyType>
+void CNFGenerator<KeyType>::addA(LiteralType a) {
+  cnf.push_back(std::vector<int>{getKeyId(a)});
+}
+
+template<typename KeyType>
 void CNFGenerator<KeyType>::addArrayOr(const std::vector<LiteralType> &arr) {
   cnf.push_back(std::vector<int>());
   auto &row = cnf[cnf.size()-1];
@@ -32,11 +37,7 @@ void CNFGenerator<KeyType>::addArrayOr(const std::vector<LiteralType> &arr) {
 
 template<typename KeyType>
 void CNFGenerator<KeyType>::addAtoB(LiteralType a, LiteralType b) {
-  cnf.push_back(std::vector<int>());
-  auto &row = cnf[cnf.size()-1];
-
-  row.push_back(-getKeyId(a));
-  row.push_back(getKeyId(b));
+  cnf.push_back(std::vector<int>{-getKeyId(a), getKeyId(b)});
 }
 
 template<typename KeyType>
@@ -49,6 +50,64 @@ void CNFGenerator<KeyType>::addArrayAndtoB(const std::vector<LiteralType> &arr, 
   }
   row.push_back(getKeyId(b));
 }
+
+template<typename KeyType>
+void CNFGenerator<KeyType>::addGreaterThanOrEqualX(const std::vector<LiteralType> &arr, int x){
+  int N = arr.size();
+
+  if (N >= 20) {
+    fprintf(stderr, "[addGreaterThanOrEqualX] Array size is must be less then 20.");
+    exit(1);
+  }
+
+  std::vector<int> comb(N);
+  for (int i=0; i<N; i++) {
+    comb[i] = i >= x-1;
+  }
+
+  do{
+    std::vector<LiteralType> combArr;
+    for (int i=0; i<N; i++)
+      if (comb[i])
+        combArr.push_back(arr[i]);
+
+    addArrayOr(combArr);
+  }while(next_permutation(comb.begin(), comb.end()));
+}
+
+template<typename KeyType>
+void CNFGenerator<KeyType>::addLessThanOrEqualX(const std::vector<LiteralType> &arr, int x){
+  int N = arr.size();
+
+  if (N >= 20) {
+    fprintf(stderr, "[addLessThanOrEqualX] Array size is must be less then 20.");
+    exit(1);
+  }
+
+  std::vector<int> comb(N);
+  std::vector<LiteralType> negativeArr(N, LiteralType(0, false));
+  for (int i=0; i<N; i++) {
+    comb[i] = N-i-1 < x+1;
+    negativeArr[i] = arr[i];
+    negativeArr[i].neg = !negativeArr[i].neg;
+  }
+
+  do{
+    std::vector<LiteralType> combArr;
+    for (int i=0; i<N; i++)
+      if (comb[i])
+        combArr.push_back(negativeArr[i]);
+
+    addArrayOr(combArr);
+  }while(next_permutation(comb.begin(), comb.end()));
+}
+
+template<typename KeyType>
+void CNFGenerator<KeyType>::addEqualX(const std::vector<LiteralType> &arr, int x) {
+  addLessThanOrEqualX(arr, x);
+  addGreaterThanOrEqualX(arr, x);
+}
+
 
 template<typename KeyType>
 void CNFGenerator<KeyType>::exportCNF(FILE *file) const {

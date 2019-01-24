@@ -22,9 +22,13 @@ private:
 public:
   CNFGenerator();
 
+  void addA(LiteralType a);
   void addArrayOr(const std::vector<LiteralType> &arr);
   void addAtoB(LiteralType a, LiteralType b);
   void addArrayAndtoB(const std::vector<LiteralType> &arr, LiteralType b);
+  void addLessThanOrEqualX(const std::vector<LiteralType> &arr, int x);
+  void addGreaterThanOrEqualX(const std::vector<LiteralType> &arr, int x);
+  void addEqualX(const std::vector<LiteralType> &arr, int x);
 
   void exportCNF(FILE* file) const;
   CNFStatus getStatus() const;
