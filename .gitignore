@@ -1,0 +1,9 @@
+# exeFile
+/*Solver
+!solver/
+
+# C++
+*.o
+
+# MiniSat
+*.cnf
